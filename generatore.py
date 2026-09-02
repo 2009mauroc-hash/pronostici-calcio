@@ -1,12 +1,11 @@
 import os
 import json
-import urllib.request
 from groq import Groq
 
-# 1. Inizializza l'IA con la chiave gratuita
+# 1. Inizializza l'IA con la chiave segreta di GitHub
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-# 2. Struttura dati base (puoi automatizzare lo scraping o aggiornare le partite)
+# 2. Partite di test con analisi statistica e fattore umano
 partite = [
     {
         "partita": "Inter vs Milan",
@@ -24,14 +23,14 @@ for item in partite:
     Dati Statistici: {item['stats']}
     Fattore Umano e Notizie dell'Ultimo Minuto: {item['fattore_umano']}
 
-    Crea una scheda pronostico super dettagliata in formato JSON o testo chiaro con:
+    Crea una scheda pronostico super dettagliata con:
     1. Analisi Tattica
-    2. Impatto del Fattore Umano/Psicologico (perché la palla è rotonda)
-    3. Il Verdetto / Pronostico
+    2. Impatto del Fattore Umano/Psicologico
+    3. Il Verdetto / Pronostico finale
     """
-
+    
     response = client.chat.completions.create(
-        model="llama3-8b-8192",
+        model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7
     )
@@ -42,7 +41,7 @@ for item in partite:
         "analisi": testo_generato
     })
 
-# 3. Salva i risultati nel file dati.json che il sito mostrerà agli utenti
+# 3. Salva i risultati nel file dati.json per il sito
 with open("dati.json", "w", encoding="utf-8") as f:
     json.dump(risultati_pronostici, f, ensure_ascii=False, indent=2)
 
