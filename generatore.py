@@ -16,28 +16,11 @@ L'array JSON deve avere esattamente questa struttura:
 ]
 """
 
-models_to_try = [
-    "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant",
-    "llama3-8b-8192",
-    "mixtral-8x7b-32768"
-]
-
-response = None
-for model_name in models_to_try:
-    try:
-        print(f"Tentativo con il modello: {model_name}")
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7
-        )
-        break
-    except Exception as e:
-        print(f"Modello {model_name} non disponibile, passo al successivo...")
-
-if not response:
-    raise RuntimeError("Tutti i modelli Groq provati hanno fallito.")
+response = client.chat.completions.create(
+    model="openai/gpt-oss-20b",
+    messages=[{"role": "user", "content": prompt}],
+    temperature=0.7
+)
 
 content = response.choices[0].message.content.strip()
 
