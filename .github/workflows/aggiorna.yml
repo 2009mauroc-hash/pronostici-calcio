@@ -1,36 +1,38 @@
-name: Aggiorna Pronostici Calcio
+name: Aggiorna Pronostici
 
 on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
   schedule:
-    - cron: '0 7 * * *'
+    - cron: '0 8 * * *' # Gira tutti i giorni alle 08:00
+  workflow_dispatch: # Permette di avviarlo a mano
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+    steps:
+      - name: Clona repository
+        uses: actions/checkout@v3
+
+      - name: Configura Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
-        run: pip install groq requests
+      - name: Installa dipendenze
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests groq
 
-      - name: Run generator
+      - name: Esegui generatore.py
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
         run: python generatore.py
 
-      - name: Commit and push changes
+      - name: Salva e carica modifiche su GitHub
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add dati.json
-          git commit -m "Aggiornamento automatico pronostici IA" || exit 0
+          git commit -m "Aggiornamento automatico pronostici IA con dati reali" || exit 0
           git push
