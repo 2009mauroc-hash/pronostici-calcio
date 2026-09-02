@@ -2,8 +2,7 @@ import os
 import json
 from groq import Groq
 
-api_key = os.environ.get("GROQ_API_KEY")
-client = Groq(api_key=api_key)
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 prompt = """
 Agisci come un super assistente di intelligenza artificiale per il calcio. Genera un elenco JSON valido (e RESTITUISCI SOLO un array JSON puro, senza alcun blocco di codice markdown come ```json o testo introduttivo) delle principali partite di calcio in programma oggi o per il prossimo turno ufficiale, includendo stime di xG, statistiche chiave e un'analisi approfondita con "fattore umano".
@@ -17,11 +16,28 @@ L'array JSON deve avere esattamente questa struttura:
 ]
 """
 
-response = client.chat.completions.create(
-    model="llama-3.3-70b-specdec",
-    messages=[{"role": "user", "content": prompt}],
-    temperature=0.7
-)
+models_to_try = [
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+    "llama3-8b-8192",
+    "mixtral-8x7b-32768"
+]
+
+response = None
+for model_name in models_to_try:
+    try:
+        print(f"Tentativo con il modello: {model_name}")
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7
+        )
+        break
+    except Exception as e:
+        print(f"Modello {model_name} non disponibile, passo al successivo...")
+
+if not response:
+    raise RuntimeError("Tutti i modelli Groq provati hanno fallito.")
 
 content = response.choices[0].message.content.strip()
 
