@@ -1,0 +1,35 @@
+name: Aggiorna Pronostici Calcio
+
+on:
+  schedule:
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scarica il codice del repository
+        uses: actions/checkout@v3
+
+      - name: Configura Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Installa le librerie
+        run: |
+          pip install groq
+
+      - name: Esegui lo script di intelligenza artificiale
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python generatore.py
+
+      - name: Salva i cambiamenti e pubblica i nuovi dati
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add dati.json
+          git commit -m "Aggiornamento pronostici automatico" || exit 0
+          git push
