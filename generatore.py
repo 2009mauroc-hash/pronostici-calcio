@@ -1,38 +1,37 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pronostici Calcio IA + Fattore Umano</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #121212; color: #fff; padding: 20px; max-width: 800px; margin: auto; }
-        .card { background-color: #1e1e1e; border-radius: 8px; padding: 20px; margin-bottom: 20px; border-left: 4px solid #00ff88; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        h1 { color: #00ff88; text-align: center; margin-bottom: 30px; }
-        h2 { margin-top: 0; color: #ffffff; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        p { white-space: pre-line; line-height: 1.6; color: #d1d5db; }
-        .loading { text-align: center; color: #888; font-style: italic; }
-    </style>
-</head>
-<body>
-    <h1>⚽ Pronostici & Pagelle IA (Fattore Umano Included)</h1>
-    <div id="contenuto" class="loading">Caricamento ultimi aggiornamenti dal web...</div>
+import os
+import json
+from groq import Groq
 
-    <script>
-        fetch('dati.json?t=' + new Date().getTime())
-            .then(res => res.json())
-            .then(data => {
-                let html = '';
-                data.forEach(item => {
-                    html += `<div class="card">
-                        <h2>${item.partita}</h2>
-                        <p>${item.analisi}</p>
-                    </div>`;
-                });
-                document.getElementById('contenuto').innerHTML = html;
-            })
-            .catch(err => {
-                document.getElementById('contenuto').innerHTML = "<p>Nessun pronostico disponibile al momento. L'IA sta elaborando i dati live.</p>";
-            });
-    </script>
-</body>
-</html>
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+prompt = """
+Agisci come un super assistente di intelligenza artificiale per il calcio. Genera un elenco JSON valido (e RESTITUISCI SOLO un array JSON puro, senza alcun blocco di codice markdown come ```json o testo introduttivo) delle principali partite di calcio in programma oggi o per il prossimo turno ufficiale, includendo stime di xG, statistiche chiave e un'analisi approfondita con "fattore umano".
+
+L'array JSON deve avere esattamente questa struttura:
+[
+  {
+    "partita": "Nome Squadra A vs Nome Squadra B",
+    "analisi": "Qui scrivi l'analisi dettagliata della partita, le statistiche recenti, gli xG stimati, le quote o lo stato di forma e le considerazioni sul fattore umano."
+  }
+]
+"""
+
+response = client.chat.completions.create(
+    model="llama-3.1-8b-instant",
+    messages=[{"role": "user", "content": prompt}],
+    temperature=0.7
+)
+
+content = response.choices[0].message.content.strip()
+
+if content.startswith("```json"):
+    content = content[7:]
+if content.startswith("```"):
+    content = content[3:]
+if content.endswith("```"):
+    content = content[:-3]
+content = content.strip()
+
+data = json.loads(content)
+with open("dati.json", "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=4)
